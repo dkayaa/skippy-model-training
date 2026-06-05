@@ -60,10 +60,24 @@ python scripts/02_build_training_set.py
 
 Creates `data/labeled_samples_800.json` — 400 ad segments and 400 non-ad segments.
 
-Check label distribution before training:
+### 2b. Broaden dataset (optional)
+
+Requires a running [Ollama](https://ollama.com) service.
 
 ```bash
-python scripts/sort_data_stats.py
+python scripts/02b_broaden_dataset.py \
+  --input data/labeled_samples_800.json \
+  --output data/labeled_samples_4800.json \
+  --multiplier 5 \
+  --model llama3.2
+```
+
+Generates synthetic paraphrases for each record while preserving the label. Each successful generation is appended to a sidecar file immediately, so progress survives crashes. Re-run the same command to resume; use `--fresh` to start over. Use `--no-extend-existing` to write only the synthetic records. Defaults: `--multiplier 5`, `--extend-existing`.
+
+Check dataset statistics before training:
+
+```bash
+python scripts/dataset_stats.py --input data/labeled_samples_800.json
 ```
 
 ### 3. Train classifier
@@ -81,8 +95,10 @@ skippy-model-training/
 ├── scripts/
 │   ├── 01_fetch_transcripts.py   # Fetch YouTube transcripts, weak-label segments
 │   ├── 02_build_training_set.py  # Build balanced 800-sample training set
+│   ├── 02b_broaden_dataset.py    # Augment dataset via Ollama
 │   ├── 03_train_classifier.py    # Fine-tune DistilBERT
-│   ├── sort_data_stats.py        # Print positive/negative label counts
+│   ├── dataset_stats.py          # Print dataset statistics
+│   ├── sort_data_stats.py        # Stats over raw transcripts/ folder
 │   └── back_translate.py         # Experimental augmentation (not in pipeline)
 ├── data/
 │   └── labeled_samples_800.json  # Training dataset (committed)

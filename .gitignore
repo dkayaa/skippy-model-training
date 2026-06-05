@@ -12,6 +12,8 @@ venv/
 transcripts/
 data/positive_labels.json
 data/negative_labels.json
+*.synthetic.jsonl
+*.progress.json
 
 # Training artifacts
 training-output/
