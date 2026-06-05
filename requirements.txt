@@ -1,0 +1,6 @@
+youtube-transcript-api
+transformers
+datasets
+torch
+scikit-learn
+numpy

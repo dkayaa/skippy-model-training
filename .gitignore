@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# OS
+.DS_Store
+
+# Generated / large data
+transcripts/
+data/positive_labels.json
+data/negative_labels.json
+
+# Training artifacts
+training-output/
+logs/
+
+# Trained model (publish via Hugging Face or Git LFS instead)
+models/
