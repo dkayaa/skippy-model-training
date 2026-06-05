@@ -6,15 +6,10 @@ import statistics
 import sys
 from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPT_DIR))
 
-def load_dataset(path: Path) -> list[dict]:
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-
-    if not isinstance(data, list):
-        raise ValueError(f"Expected a JSON array in {path}")
-
-    return data
+from dataset_io import load_dataset
 
 
 def word_count(text: str) -> int:
@@ -146,7 +141,7 @@ def parse_args() -> argparse.Namespace:
         "--input",
         required=True,
         type=Path,
-        help="Path to input JSON dataset",
+        help="Path to input dataset (.json or .jsonl)",
     )
     parser.add_argument(
         "--json",

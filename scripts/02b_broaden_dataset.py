@@ -8,6 +8,11 @@ from pathlib import Path
 
 import requests
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPT_DIR))
+
+from dataset_io import append_record, load_dataset, write_dataset
+
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 
 
@@ -50,20 +55,6 @@ def generate_variant(
     if not generated:
         raise ValueError("Ollama returned an empty response")
     return generated
-
-
-def load_dataset(path: Path) -> list[dict]:
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-
-    if not isinstance(data, list):
-        raise ValueError(f"Expected a JSON array in {path}")
-
-    for i, record in enumerate(data):
-        if "text" not in record or "label" not in record:
-            raise ValueError(f"Record {i} must include 'text' and 'label' fields")
-
-    return data
 
 
 def sidecar_paths(output_path: Path) -> tuple[Path, Path]:
@@ -120,37 +111,15 @@ def validate_progress(
         raise ValueError("Progress file was created with a different extend-existing setting")
 
 
-def append_synthetic(synthetic_path: Path, record: dict) -> None:
-    with open(synthetic_path, "a", encoding="utf-8") as f:
-        f.write(json.dumps(record, ensure_ascii=False) + "\n")
-
-
-def load_synthetics(synthetic_path: Path) -> list[dict]:
-    if not synthetic_path.exists():
-        return []
-
-    records = []
-    with open(synthetic_path, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                records.append(json.loads(line))
-    return records
-
-
 def finalize_output(
     records: list[dict],
     synthetic_path: Path,
     output_path: Path,
     extend_existing: bool,
 ) -> tuple[int, int]:
-    synthetics = load_synthetics(synthetic_path)
+    synthetics = load_dataset(synthetic_path) if synthetic_path.exists() else []
     output_dataset = (records + synthetics) if extend_existing else synthetics
-
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(output_dataset, f, indent=2, ensure_ascii=False)
-
+    write_dataset(output_path, output_dataset)
     return len(records), len(synthetics)
 
 
@@ -212,7 +181,7 @@ def broaden_dataset(
                         "start": None,
                         "label": record["label"],
                     }
-                    append_synthetic(synthetic_path, synthetic_record)
+                    append_record(synthetic_path, synthetic_record)
                     completed.add(key)
                     save_progress(
                         progress_path,
@@ -267,13 +236,13 @@ def parse_args() -> argparse.Namespace:
         "--input",
         required=True,
         type=Path,
-        help="Path to input JSON dataset",
+        help="Path to input dataset (.json or .jsonl)",
     )
     parser.add_argument(
         "--output",
         required=True,
         type=Path,
-        help="Path to output JSON dataset",
+        help="Path to output dataset (.json or .jsonl)",
     )
     parser.add_argument(
         "--multiplier",

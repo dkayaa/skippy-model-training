@@ -58,7 +58,11 @@ Fetches ~100 podcast YouTube videos, segments transcripts (window=20, stride=10)
 python scripts/02_build_training_set.py
 ```
 
-Creates `data/labeled_samples_800.json` — 400 ad segments and 400 non-ad segments.
+Creates `data/labeled_samples_800.jsonl` by default — 400 ad segments and 400 non-ad segments. Output format is chosen from the file extension (`.json` or `.jsonl`).
+
+```bash
+python scripts/02_build_training_set.py --output data/labeled_samples_800.jsonl
+```
 
 ### 2b. Broaden dataset (optional)
 
@@ -66,8 +70,8 @@ Requires a running [Ollama](https://ollama.com) service.
 
 ```bash
 python scripts/02b_broaden_dataset.py \
-  --input data/labeled_samples_800.json \
-  --output data/labeled_samples_4800.json \
+  --input data/labeled_samples_800.jsonl \
+  --output data/labeled_samples_4800.jsonl \
   --multiplier 5 \
   --model llama3.2
 ```
@@ -77,13 +81,13 @@ Generates synthetic paraphrases for each record while preserving the label. Each
 Check dataset statistics before training:
 
 ```bash
-python scripts/dataset_stats.py --input data/labeled_samples_800.json
+python scripts/dataset_stats.py --input data/labeled_samples_800.jsonl
 ```
 
 ### 3. Train classifier
 
 ```bash
-python scripts/03_train_classifier.py
+python scripts/03_train_classifier.py --input data/labeled_samples_800.jsonl
 ```
 
 Fine-tunes DistilBERT for 3 epochs. Checkpoints go to `training-output/`; the final model and tokenizer are saved to `models/ad-classifier/`.
@@ -97,6 +101,7 @@ skippy-model-training/
 │   ├── 02_build_training_set.py  # Build balanced 800-sample training set
 │   ├── 02b_broaden_dataset.py    # Augment dataset via Ollama
 │   ├── 03_train_classifier.py    # Fine-tune DistilBERT
+│   ├── dataset_io.py             # Shared JSON/JSONL read/write helpers
 │   ├── dataset_stats.py          # Print dataset statistics
 │   ├── sort_data_stats.py        # Stats over raw transcripts/ folder
 │   └── back_translate.py         # Experimental augmentation (not in pipeline)
@@ -114,6 +119,15 @@ skippy-model-training/
 - **Task:** Binary sequence classification (ad segment vs not)
 - **Segmentation:** 20 caption snippets per window, stride 10
 - **Weak labels:** Keyword/brand matching in `01_fetch_transcripts.py`
+
+## Dataset format
+
+Labeled datasets use records with `text`, `label`, and optionally `start` fields. Pipeline scripts accept both:
+
+- **JSON** — a single array of records
+- **JSONL** — one record per line
+
+Format is inferred from the file extension. JSONL is the default for new outputs.
 
 ## Notes
 
