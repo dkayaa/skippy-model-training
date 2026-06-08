@@ -1,10 +1,10 @@
-# Skippy Model Training
+# Skipr Model Training
 
 Train a classifier that detects sponsor/ad segments in YouTube podcast transcripts.
 
 ## Overview
 
-This repo covers the data pipeline and model training for Skippy. It fetches YouTube transcripts, weak-labels sponsor segments with keyword heuristics, builds a balanced training set, and fine-tunes a DistilBERT classifier.
+This repo covers the data pipeline and model training for Skipr. It fetches YouTube transcripts, weak-labels sponsor segments with keyword heuristics, builds a balanced training set, and fine-tunes a DistilBERT classifier.
 
 **Pipeline**
 
@@ -109,7 +109,7 @@ Fine-tunes DistilBERT for 3 epochs. Checkpoints go to `training-output/`; the fi
 ## Project structure
 
 ```
-skippy-model-training/
+skipr-model-training/
 ├── scripts/
 │   ├── 01_fetch_transcripts.py   # Fetch YouTube transcripts, weak-label segments
 │   ├── 02_build_training_set.py  # Build balanced 800-sample training set
@@ -149,7 +149,7 @@ Format is inferred from the file extension. JSONL is the default for new outputs
 - Transcripts are fetched live from YouTube; availability depends on captions being enabled.
 - Weak labels are noisy; the classifier learns from keyword-labeled examples.
 - `scripts/back_translate.py` is experimental and not wired into the pipeline.
-- Inference and the browser extension live in a separate repo.
+- Inference and the browser extension live in separate repos (`skipr-plugin`, `skipr-youtube-api`).
 
 ## License
 
