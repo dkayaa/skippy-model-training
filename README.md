@@ -64,6 +64,20 @@ Creates `data/labeled_samples_800.jsonl` by default — 400 ad segments and 400 
 python scripts/02_build_training_set.py --output data/labeled_samples_800.jsonl
 ```
 
+### 2c. Snip dataset (optional)
+
+Trim leading and trailing words from each record to emulate a random mid-podcast span:
+
+```bash
+python scripts/02c_snip_dataset.py \
+  --input data/labeled_samples_800.jsonl \
+  --output data/labeled_samples_800_snipped.jsonl \
+  --snip-start 10 \
+  --snip-end 10
+```
+
+`-x` / `--snip-start` removes the first *x* words; `-y` / `--snip-end` removes the last *y* words. Records too short after snipping are skipped.
+
 ### 2b. Broaden dataset (optional)
 
 Requires a running [Ollama](https://ollama.com) service.
@@ -76,7 +90,7 @@ python scripts/02b_broaden_dataset.py \
   --model llama3.2
 ```
 
-Generates synthetic paraphrases for each record while preserving the label. Each successful generation is appended to a sidecar file immediately, so progress survives crashes. Re-run the same command to resume; use `--fresh` to start over. Use `--no-extend-existing` to write only the synthetic records. Defaults: `--multiplier 5`, `--extend-existing`.
+Generates synthetic variants for each record while preserving the label. Each variant rotates through augmentation strategies (paraphrase, new scenario, style shift, fragment, vocabulary shift) with label-specific prompts and per-strategy temperature. Near-duplicates are filtered via `--dedup-threshold` (default `0.85`; set `1.0` to disable). Each successful generation is appended to a sidecar file immediately, so progress survives crashes. Re-run the same command to resume; use `--fresh` to start over. Use `--no-extend-existing` to write only the synthetic records. Defaults: `--multiplier 5`, `--extend-existing`.
 
 Check dataset statistics before training:
 
@@ -100,6 +114,7 @@ skippy-model-training/
 │   ├── 01_fetch_transcripts.py   # Fetch YouTube transcripts, weak-label segments
 │   ├── 02_build_training_set.py  # Build balanced 800-sample training set
 │   ├── 02b_broaden_dataset.py    # Augment dataset via Ollama
+│   ├── 02c_snip_dataset.py       # Trim word spans from each record
 │   ├── 03_train_classifier.py    # Fine-tune DistilBERT
 │   ├── dataset_io.py             # Shared JSON/JSONL read/write helpers
 │   ├── dataset_stats.py          # Print dataset statistics
