@@ -5,3 +5,6 @@ torch
 scikit-learn
 numpy
 requests
+onnx
+onnxruntime
+onnxscript
